@@ -3,7 +3,9 @@ import streamlit as st
 # openai key 값 로딩, 환경변수 .env에 저장, git에 업로딩은 안되도록
 from openai import OpenAI
 from dotenv import load_dotenv
-#명령어에 안뜨면 설치해줘야함
+import base64
+import io
+from PIL import Image
 import os
 # .env 파일의 환경변수를 메모리에 로딩
 load_dotenv(override = True)
@@ -17,11 +19,17 @@ def get_image(user_prompt):
             prompt= user_prompt,
             size = '1024x1024',
             quality='standard',
+            response_format='b64_json',
             n=1,
         )
-    image_url = response.data[0].url
-    # print(image_url)
-    return image_url
+    response = response.data[0].b64_json # DALLE로부터 Base64 형태의 이미지를 얻음.
+    image_data = base64.b64decode(response) # Base64로 쓰여진 데이터를 이미지 형태로 변환
+    image = Image.open(io.BytesIO(image_data)) # '파일처럼' 만들어진 이미지 데이터를 컴퓨터에서 볼 수 있도록 Open
+    return image
+
+    # image_url = response.data[0].url
+    # # print(image_url)
+    # return image_url
 # openai key 값 프린트 해보기
 # print(openai_key)
 
@@ -43,19 +51,14 @@ st.write("원하는 그림을 tell me :sunglasses:")
 user_prompt = st.text_area("원하는 그림?", height=100)
 
 
-# - 버튼: 그림을 요청하기 gpt 에게
-# print('버튼 클릭 전')
+# 버튼: 그림을 요청하기 gpt 에게
 if st.button('painting'):
-    # print('버튼 클릭 후')
     # 텍스트 에리어 박스에 입력한 값을 받기 (user_prompt)
     print('user_prompt:', user_prompt)
     if user_prompt:
-        # print('프롬프트 값 정상')
-        # ---------------
         # openAI에 그림 그리기 메시지를 보내기
-        image_url = get_image(user_prompt)
-        #--------------------
-        st.image(image_url, caption="Your paint!")
+        image = get_image(user_prompt)
+        st.image(image, caption="Your paint!")
     else:
         st.write('텍스트 박스에 그리실 그림을 영어로 설명해주세요!')
 

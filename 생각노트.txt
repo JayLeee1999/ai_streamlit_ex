@@ -9,3 +9,18 @@
 - 객체 변수를 통해 그림을 그리라는 요청
 - 모델, 프롬프트 (system, user: textarea > value)
 - gpt로 부터 받은 이미지를 화면에 출력
+
+
+# 실제 이미지 값을 jso값 리턴 받음
+def get_image(user_prompt):
+    response = client.images.generate(
+            model='dall-e-3',
+            prompt= user_prompt,
+            size = '1024x1024',
+            quality='standard',
+            response_format='b64_json', # 이때 base64 형태의 이미지를 리턴함
+            n=1,
+        )
+    image_url = response.data[0].url
+    # print(image_url)
+    return image_url
